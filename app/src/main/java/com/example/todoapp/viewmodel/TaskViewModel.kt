@@ -91,6 +91,8 @@ class TaskViewModel : ViewModel() {
     }
 }
 
+// taskviewmodel без апи заглушки
+
 //package com.example.todoapp.viewmodel
 //
 //import androidx.lifecycle.ViewModel

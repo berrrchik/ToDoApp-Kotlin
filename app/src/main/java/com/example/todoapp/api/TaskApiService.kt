@@ -21,23 +21,23 @@ class MockTaskApiService : TaskApiService {
             id = 1,
             title = "Подготовить презентацию",
             description = "Презентация по проекту на следующей неделе",
-            priority = TaskPriority.HIGH,
-            category = TaskCategory.WORK,
+            priority = TaskPriority.ВЫСОКИЙ,
+            category = TaskCategory.РАБОТА,
             deadline = LocalDateTime.now().plusDays(5)
         ),
         Task(
             id = 2,
             title = "Купить продукты",
             description = "Молоко, хлеб, овощи",
-            priority = TaskPriority.MEDIUM,
-            category = TaskCategory.HOME
+            priority = TaskPriority.СРЕДНИЙ,
+            category = TaskCategory.ДОМ
         ),
         Task(
             id = 3,
             title = "Подготовиться к экзамену",
             description = "Повторить материалы по Android разработке",
-            priority = TaskPriority.HIGH,
-            category = TaskCategory.STUDY,
+            priority = TaskPriority.НИЗКИЙ,
+            category = TaskCategory.УЧЁБА,
             deadline = LocalDateTime.now().plusDays(2)
         )
     )
