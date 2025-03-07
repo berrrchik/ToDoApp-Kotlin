@@ -43,21 +43,25 @@ fun CompletedTasksScreen(navController: NavController, tasks: List<Task>, viewMo
                     },
                     onDeleteClick = {
 
+//                        без апи
 //                        viewModel.updateTasks(
 //                                    tasks.map {
 //                                        if (it.id == task.id) it.copy(isDeleted = true) else it
 //                                    }
 //                                )
 
+//                        с апи
                         viewModel.deleteTask(task.id)
                     },
                     onCompleteClick = {
 
+//                        без апи
 //                        viewModel.updateTasks(
 //                                    tasks.map {
 //                                        if (it.id == task.id) it.copy(isCompleted = false) else it
-//                                    }
+//                                    })
 
+//                        с апи
                         viewModel.updateTask(task.copy(isCompleted = false))
                     }
                 )

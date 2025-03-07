@@ -17,7 +17,12 @@ import java.time.LocalDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddTaskScreen(navController: NavController, viewModel: TaskViewModel) {
+
+//без апи
+fun AddTaskScreen(navController: NavController, viewModel: TaskViewModel, tasks: List<Task>) {
+
+//    с апи
+//    fun AddTaskScreen(navController: NavController, viewModel: TaskViewModel) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var priority by remember { mutableStateOf(TaskPriority.СРЕДНИЙ) }
@@ -50,11 +55,28 @@ fun AddTaskScreen(navController: NavController, viewModel: TaskViewModel) {
             onCategoryChange = { category = it },
             deadline = deadline,
             onDeadlineChange = { deadline = it },
+
+//            без апи
+//            onSave = {
+//                if (title.isNotBlank()) {
+//                    val newTask = Task(
+//                        id = tasks.size,
+//                        title = title,
+//                        description = description,
+//                        priority = priority,
+//                        category = category,
+//                        deadline = deadline,
+//                        isCompleted = false
+//                    )
+//                    viewModel.updateTasks(tasks + newTask)
+//                    navController.navigateUp()
+//                }
+//            },
+
+//            с апи
             onSave = {
                 if (title.isNotBlank()) {
                     val newTask = Task(
-//                        id = tasks.size,
-
                         id = 0,
                         title = title,
                         description = description,
@@ -63,7 +85,6 @@ fun AddTaskScreen(navController: NavController, viewModel: TaskViewModel) {
                         deadline = deadline,
                         isCompleted = false
                     )
-//                    viewModel.updateTasks(tasks + newTask)
                     viewModel.createTask(newTask)
                     navController.navigateUp()
                 }

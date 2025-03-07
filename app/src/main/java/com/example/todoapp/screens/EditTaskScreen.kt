@@ -59,19 +59,9 @@ fun EditTaskScreen(
             onCategoryChange = { category = it },
             deadline = deadline,
             onDeadlineChange = { deadline = it },
+
+//            с апи
             onSave = {
-//                viewModel.updateTasks(
-//                            tasks.map {
-//                                if (it.id == taskId) {
-//                                    it.copy(
-//                                        title = title,
-//                                        description = description,
-//                                        priority = priority,
-//                                        category = category,
-//                                        deadline = deadline
-//                                    )
-//                                } else it
-//                            }
                 viewModel.updateTask(
                     task.copy(
                         title = title,
@@ -83,6 +73,24 @@ fun EditTaskScreen(
                 )
                 navController.navigateUp()
             },
+
+//            без апи
+//            onSave = {
+//                viewModel.updateTasks(
+//                    tasks.map {
+//                        if (it.id == taskId) {
+//                            it.copy(
+//                                title = title,
+//                                description = description,
+//                                priority = priority,
+//                                category = category,
+//                                deadline = deadline
+//                            )
+//                        } else it
+//                    }
+//                )
+//                navController.navigateUp()
+//            },
             buttonText = "Сохранить изменения"
         )
     }

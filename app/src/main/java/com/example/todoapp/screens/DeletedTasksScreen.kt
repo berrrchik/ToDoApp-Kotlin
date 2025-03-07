@@ -41,17 +41,23 @@ fun DeletedTasksScreen(navController: NavController, tasks: List<Task>, viewMode
                     onEditClick = { },
                     onDeleteClick = {
 
+//                        без апи
 //                        viewModel.updateTasks(
 //                                    tasks.filterNot { it.id == task.id }
 //                                )
 
+//                        с апи
                         viewModel.deleteTask(task.id)
                     },
                     onCompleteClick = {
+
+//                        без апи
 //                        viewModel.updateTasks(
 //                                    tasks.map {
 //                                        if (it.id == task.id) it.copy(isDeleted = false) else it
-//                                    }
+//                                    })
+
+//                        с апи
                         viewModel.updateTask(task.copy(isDeleted = false))
                     },
                     completeIcon = Icons.Default.Restore,

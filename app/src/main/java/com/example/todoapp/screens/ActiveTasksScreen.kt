@@ -107,24 +107,23 @@ fun ActiveTasksScreen(
                             },
 
                             onDeleteClick = {
-
+//                                без апи
 //                                viewModel.updateTasks(
 //                                    tasks.map {
 //                                        if (it.id == task.id) it.copy(isDeleted = true) else it
 //                                    }
 //                                )
-//                                        viewModel.deleteTask(task.id)
 
+//                                с апи
                                 viewModel.updateTask(task.copy(isDeleted = true))
                             },
-
                             onCompleteClick = {
-
+//                                без апи
 //                                viewModel.updateTasks(
-//                                    tasks.map {
-//                                        if (it.id == task.id) it.copy(isCompleted = true) else it
-//                                    }
-
+//                                            tasks.map {
+//                                                if (it.id == task.id) it.copy(isCompleted = true) else it
+//                                            })
+//                                с апи
                                 viewModel.updateTask(task.copy(isCompleted = true))
                             }
                         )

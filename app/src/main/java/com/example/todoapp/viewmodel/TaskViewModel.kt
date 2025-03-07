@@ -1,3 +1,4 @@
+// taskviewmodel с апи заглушкой
 package com.example.todoapp.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -12,7 +13,7 @@ import kotlinx.coroutines.launch
 
 class TaskViewModel : ViewModel() {
     private val api: TaskApiService = MockTaskApiService()
-    
+
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
