@@ -11,10 +11,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavBackStackEntry
 import com.example.todoapp.components.TaskEditContent
 import com.example.todoapp.model.Task
-import com.example.todoapp.model.TaskCategory
-import com.example.todoapp.model.TaskPriority
 import com.example.todoapp.viewmodel.TaskViewModel
-import java.time.LocalDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

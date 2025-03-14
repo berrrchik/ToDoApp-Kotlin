@@ -4,13 +4,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Brightness6
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.todoapp.components.SearchBar
 import com.example.todoapp.components.TaskItem
@@ -26,6 +26,7 @@ fun ActiveTasksScreen(
     searchQuery: String,
     tasks: List<Task>
 ) {
+
     Scaffold(
         topBar = {
             Column {
@@ -36,6 +37,9 @@ fun ActiveTasksScreen(
                         titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     ),
                     actions = {
+                        IconButton(onClick = { viewModel.toggleTheme() }) {
+                            Icon(Icons.Default.Brightness6, contentDescription = "Сменить тему")
+                        }
                         IconButton(onClick = { navController.navigate(Screen.DeletedTasks.route) }) {
                             Icon(Icons.Default.Delete, contentDescription = "Удаленные задачи")
                         }

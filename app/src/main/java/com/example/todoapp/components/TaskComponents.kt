@@ -15,7 +15,6 @@ import androidx.compose.ui.unit.dp
 import com.example.todoapp.model.Task
 import java.time.LocalDateTime
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskItem(
     task: Task,

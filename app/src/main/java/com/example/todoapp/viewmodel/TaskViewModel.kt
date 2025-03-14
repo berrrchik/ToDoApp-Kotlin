@@ -12,6 +12,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class TaskViewModel : ViewModel() {
+
+    private val _isDarkTheme = MutableStateFlow(false)
+    val isDarkTheme: StateFlow<Boolean> = _isDarkTheme.asStateFlow()
+
+    fun toggleTheme() {
+        viewModelScope.launch {
+            _isDarkTheme.value = !_isDarkTheme.value
+        }
+    }
+
     private val api: TaskApiService = MockTaskApiService()
 
     private val _searchQuery = MutableStateFlow("")

@@ -1,8 +1,5 @@
 package com.example.todoapp.components
 
-import android.app.DatePickerDialog
-import android.app.TimePickerDialog
-import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -12,9 +9,7 @@ import androidx.compose.ui.unit.dp
 import com.example.todoapp.model.TaskCategory
 import com.example.todoapp.model.TaskPriority
 import com.example.todoapp.utils.showDateTimePickerDialog
-import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 @Composable
