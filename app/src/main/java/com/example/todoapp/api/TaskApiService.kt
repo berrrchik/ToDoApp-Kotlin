@@ -45,6 +45,7 @@ class MockTaskApiService : TaskApiService {
     override suspend fun getTasks(): List<Task> {
         delay(mockDelay) // Имитация задержки сети
         return mockTasks.toList()
+//        return emptyList()
     }
 
     override suspend fun createTask(task: Task): Task {

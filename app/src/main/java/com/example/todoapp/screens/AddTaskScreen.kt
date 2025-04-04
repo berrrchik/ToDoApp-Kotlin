@@ -1,12 +1,14 @@
 package com.example.todoapp.screens
 
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import android.content.res.Configuration
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.todoapp.components.TaskEditContent
 import com.example.todoapp.model.Task
@@ -17,12 +19,10 @@ import java.time.LocalDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+fun AddTaskScreen(navController: NavController, viewModel: TaskViewModel) {
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
-//без апи
-fun AddTaskScreen(navController: NavController, viewModel: TaskViewModel, tasks: List<Task>) {
-
-//    с апи
-//    fun AddTaskScreen(navController: NavController, viewModel: TaskViewModel) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var priority by remember { mutableStateOf(TaskPriority.СРЕДНИЙ) }
@@ -41,55 +41,54 @@ fun AddTaskScreen(navController: NavController, viewModel: TaskViewModel, tasks:
             )
         }
     ) { padding ->
-        TaskEditContent(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
-            title = title,
-            onTitleChange = { title = it },
-            description = description,
-            onDescriptionChange = { description = it },
-            priority = priority,
-            onPriorityChange = { priority = it },
-            category = category,
-            onCategoryChange = { category = it },
-            deadline = deadline,
-            onDeadlineChange = { deadline = it },
-
-//            без апи
-//            onSave = {
-//                if (title.isNotBlank()) {
-//                    val newTask = Task(
-//                        id = tasks.size,
-//                        title = title,
-//                        description = description,
-//                        priority = priority,
-//                        category = category,
-//                        deadline = deadline,
-//                        isCompleted = false
-//                    )
-//                    viewModel.updateTasks(tasks + newTask)
-//                    navController.navigateUp()
-//                }
-//            },
-
-//            с апи
-            onSave = {
-                if (title.isNotBlank()) {
-                    val newTask = Task(
-                        id = 0,
-                        title = title,
-                        description = description,
-                        priority = priority,
-                        category = category,
-                        deadline = deadline,
-                        isCompleted = false
-                    )
-                    viewModel.createTask(newTask)
-                    navController.navigateUp()
-                }
-            },
-            buttonText = "Создать задачу"
-        )
+                .padding(padding)
+        ) {
+            TaskEditContent(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = if (isLandscape) 32.dp else 16.dp),
+                title = title,
+                onTitleChange = { title = it },
+                description = description,
+                onDescriptionChange = { description = it },
+                priority = priority,
+                onPriorityChange = { priority = it },
+                category = category,
+                onCategoryChange = { category = it },
+                deadline = deadline,
+                onDeadlineChange = { deadline = it },
+                onSave = {
+                    if (title.isNotBlank()) {
+//                        без апи
+//                        val newTask = Task(
+//                            id = viewModel.tasks.value.size + 1,
+//                            title = title,
+//                            description = description,
+//                            priority = priority,
+//                            category = category,
+//                            deadline = deadline,
+//                            isCompleted = false
+//                        )
+//                        viewModel.updateTasks(viewModel.tasks.value + newTask)
+//                        с апи
+                        val newTask = Task(
+                            id = 0,
+                            title = title,
+                            description = description,
+                            priority = priority,
+                            category = category,
+                            deadline = deadline,
+                            isCompleted = false
+                        )
+                        viewModel.createTask(newTask)
+                        navController.navigateUp()
+                    }
+                },
+                buttonText = "Создать задачу"
+            )
+        }
     }
 }

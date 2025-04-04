@@ -46,19 +46,19 @@ fun TodoApp(viewModel: TaskViewModel = viewModel()) {
             ActiveTasksScreen(navController, viewModel, searchQuery, tasks)
         }
         composable(Screen.CompletedTasks.route) {
-            CompletedTasksScreen(navController, tasks, viewModel)
+            CompletedTasksScreen(navController, viewModel, tasks)
         }
         composable(Screen.DeletedTasks.route) {
-            DeletedTasksScreen(navController, tasks, viewModel)
+            DeletedTasksScreen(navController, viewModel, tasks)
         }
         composable(Screen.EditTask.route, arguments = listOf(navArgument("taskId") { type = NavType.IntType })) { backStackEntry ->
             EditTaskScreen(navController, tasks, viewModel, backStackEntry)
         }
         composable(Screen.AddTask.route) {
 //            без апи
-            AddTaskScreen(navController, viewModel, tasks)
+//            AddTaskScreen(navController, viewModel, tasks)
 //            с апи
-//            AddTaskScreen(navController, viewModel)
+            AddTaskScreen(navController, viewModel)
         }
     }
 }

@@ -1,12 +1,14 @@
 package com.example.todoapp.screens
 
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import android.content.res.Configuration
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavBackStackEntry
 import com.example.todoapp.components.TaskEditContent
@@ -21,6 +23,9 @@ fun EditTaskScreen(
     viewModel: TaskViewModel,
     backStackEntry: NavBackStackEntry
 ) {
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
     val taskId = backStackEntry.arguments?.getInt("taskId") ?: return
     val task = tasks.find { it.id == taskId } ?: return
 
@@ -42,53 +47,54 @@ fun EditTaskScreen(
             )
         }
     ) { padding ->
-        TaskEditContent(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
-            title = title,
-            onTitleChange = { title = it },
-            description = description,
-            onDescriptionChange = { description = it },
-            priority = priority,
-            onPriorityChange = { priority = it },
-            category = category,
-            onCategoryChange = { category = it },
-            deadline = deadline,
-            onDeadlineChange = { deadline = it },
-
-//            с апи
-            onSave = {
-                viewModel.updateTask(
-                    task.copy(
-                        title = title,
-                        description = description,
-                        priority = priority,
-                        category = category,
-                        deadline = deadline
+                .padding(padding)
+        ) {
+            TaskEditContent(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = if (isLandscape) 32.dp else 16.dp),
+                title = title,
+                onTitleChange = { title = it },
+                description = description,
+                onDescriptionChange = { description = it },
+                priority = priority,
+                onPriorityChange = { priority = it },
+                category = category,
+                onCategoryChange = { category = it },
+                deadline = deadline,
+                onDeadlineChange = { deadline = it },
+                onSave = {
+//                    без апи
+//                    viewModel.updateTasks(
+//                        tasks.map {
+//                            if (it.id == taskId) {
+//                                it.copy(
+//                                    title = title,
+//                                    description = description,
+//                                    priority = priority,
+//                                    category = category,
+//                                    deadline = deadline
+//                                )
+//                            } else it
+//                        }
+//                    )
+//                    с апи
+                    viewModel.updateTask(
+                        task.copy(
+                            title = title,
+                            description = description,
+                            priority = priority,
+                            category = category,
+                            deadline = deadline
+                        )
                     )
-                )
-                navController.navigateUp()
-            },
-
-//            без апи
-//            onSave = {
-//                viewModel.updateTasks(
-//                    tasks.map {
-//                        if (it.id == taskId) {
-//                            it.copy(
-//                                title = title,
-//                                description = description,
-//                                priority = priority,
-//                                category = category,
-//                                deadline = deadline
-//                            )
-//                        } else it
-//                    }
-//                )
-//                navController.navigateUp()
-//            },
-            buttonText = "Сохранить изменения"
-        )
+                    navController.navigateUp()
+                },
+                buttonText = "Сохранить изменения"
+            )
+        }
     }
 }

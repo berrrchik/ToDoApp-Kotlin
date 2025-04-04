@@ -1,22 +1,34 @@
 package com.example.todoapp.screens
 
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import android.content.res.Configuration
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.navigation.NavController
 import com.example.todoapp.components.TaskItem
 import com.example.todoapp.model.Task
+import com.example.todoapp.navigation.Screen
 import com.example.todoapp.viewmodel.TaskViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DeletedTasksScreen(navController: NavController, tasks: List<Task>, viewModel: TaskViewModel) {
+fun DeletedTasksScreen(
+    navController: NavController,
+    viewModel: TaskViewModel,
+    tasks: List<Task>
+) {
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    val deletedTasks = tasks.filter { it.isDeleted }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -29,40 +41,89 @@ fun DeletedTasksScreen(navController: NavController, tasks: List<Task>, viewMode
             )
         }
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            items(tasks.filter { it.isDeleted }.size) { index ->
-                val task = tasks.filter { it.isDeleted }[index]
-                TaskItem(
-                    task = task,
-                    onEditClick = { },
-                    onDeleteClick = {
-
-//                        без апи
-//                        viewModel.updateTasks(
-//                                    tasks.filterNot { it.id == task.id }
-//                                )
-
-//                        с апи
-                        viewModel.deleteTask(task.id)
-                    },
-                    onCompleteClick = {
-
-//                        без апи
-//                        viewModel.updateTasks(
+        if (deletedTasks.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Нет удаленных задач",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+            }
+        } else {
+            if (isLandscape) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    LazyColumn(modifier = Modifier.weight(1f)) {
+                        items(deletedTasks) { task ->
+                            TaskItem(
+                                task = task,
+                                onEditClick = { navController.navigate(Screen.EditTask.createRoute(task.id)) },
+                                onDeleteClick = {
+//                                    без апи
+//                                    viewModel.updateTasks(
+//                                        tasks.map {
+//                                            if (it.id == task.id) it.copy(isDeleted = false) else it
+//                                        }
+//                                    )
+//                                    с апи
+                                    viewModel.updateTask(task.copy(isDeleted = false))
+                                },
+                                onCompleteClick = {
+//                                    без апи
+//                                    viewModel.updateTasks(
+//                                        tasks.map {
+//                                            if (it.id == task.id) it.copy(isCompleted = true) else it
+//                                        }
+//                                    )
+//                                    с апи
+                                    viewModel.updateTask(task.copy(isCompleted = true))
+                                }
+                            )
+                        }
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                ) {
+                    items(deletedTasks) { task ->
+                        TaskItem(
+                            task = task,
+                            onEditClick = { navController.navigate(Screen.EditTask.createRoute(task.id)) },
+                            onDeleteClick = {
+//                                без апи
+//                                viewModel.updateTasks(
 //                                    tasks.map {
 //                                        if (it.id == task.id) it.copy(isDeleted = false) else it
-//                                    })
-
-//                        с апи
-                        viewModel.updateTask(task.copy(isDeleted = false))
-                    },
-                    completeIcon = Icons.Default.Restore,
-                    completeIconDescription = "Восстановить"
-                )
+//                                    }
+//                                )
+//                                с апи
+                                viewModel.updateTask(task.copy(isDeleted = false))
+                            },
+                            onCompleteClick = {
+//                                без апи
+//                                viewModel.updateTasks(
+//                                    tasks.map {
+//                                        if (it.id == task.id) it.copy(isCompleted = true) else it
+//                                    }
+//                                )
+//                                с апи
+                                viewModel.updateTask(task.copy(isCompleted = true))
+                            }
+                        )
+                    }
+                }
             }
         }
     }

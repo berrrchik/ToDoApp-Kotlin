@@ -1,6 +1,7 @@
 // taskviewmodel с апи заглушкой
 package com.example.todoapp.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.todoapp.api.TaskApiService
@@ -11,8 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class TaskViewModel : ViewModel() {
-
+class TaskViewModel(private val savedStateHandle: SavedStateHandle) : ViewModel() {
     private val _isDarkTheme = MutableStateFlow(false)
     val isDarkTheme: StateFlow<Boolean> = _isDarkTheme.asStateFlow()
 
@@ -24,7 +24,7 @@ class TaskViewModel : ViewModel() {
 
     private val api: TaskApiService = MockTaskApiService()
 
-    private val _searchQuery = MutableStateFlow("")
+    private val _searchQuery = MutableStateFlow(savedStateHandle.get<String>("searchQuery") ?: "")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
     private val _tasks = MutableStateFlow<List<Task>>(emptyList())
@@ -37,7 +37,7 @@ class TaskViewModel : ViewModel() {
         loadTasks()
     }
 
-    private fun loadTasks() {
+    fun loadTasks() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
@@ -51,9 +51,8 @@ class TaskViewModel : ViewModel() {
     }
 
     fun updateSearchQuery(query: String) {
-        viewModelScope.launch {
-            _searchQuery.value = query
-        }
+        _searchQuery.value = query
+        savedStateHandle["searchQuery"] = query // Сохраняем в SavedStateHandle
     }
 
     fun createTask(task: Task) {
