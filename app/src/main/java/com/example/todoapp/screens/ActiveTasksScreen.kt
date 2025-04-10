@@ -239,11 +239,24 @@ fun ActiveTasksScreen(
                         }
                     }
                 )
+                val history by viewModel.searchHistory.collectAsState()
+                val isHistoryVisible by viewModel.isHistoryVisible.collectAsState()
+                val isSearching by viewModel.isSearching.collectAsState()
+                
                 SearchBar(
                     searchQuery = searchQuery,
                     onSearchQueryChange = { viewModel.updateSearchQuery(it) },
                     onRefresh = { viewModel.loadTasks() },
-                    isTasksEmpty = tasks.isEmpty()
+                    isTasksEmpty = tasks.isEmpty(),
+                    searchHistory = history,
+                    onHistoryItemClick = { 
+                        viewModel.updateSearchQuery(it)
+                        viewModel.setHistoryVisible(false)
+                    },
+                    onClearHistoryClick = { viewModel.clearSearchHistory() },
+                    isHistoryVisible = isHistoryVisible,
+                    onFocusChange = { viewModel.setHistoryVisible(it) },
+                    isSearching = isSearching
                 )
             }
         },

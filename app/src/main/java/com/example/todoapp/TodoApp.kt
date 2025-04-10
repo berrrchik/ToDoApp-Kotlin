@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -25,7 +24,7 @@ import com.example.todoapp.viewmodel.TaskViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TodoApp(viewModel: TaskViewModel = viewModel()) {
+fun TodoApp(viewModel: TaskViewModel) {
     val navController = rememberNavController()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val tasks by viewModel.tasks.collectAsState()
