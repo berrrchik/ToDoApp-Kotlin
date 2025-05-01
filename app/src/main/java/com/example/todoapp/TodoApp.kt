@@ -54,9 +54,6 @@ fun TodoApp(viewModel: TaskViewModel) {
             EditTaskScreen(navController, tasks, viewModel, backStackEntry)
         }
         composable(Screen.AddTask.route) {
-//            без апи
-//            AddTaskScreen(navController, viewModel, tasks)
-//            с апи
             AddTaskScreen(navController, viewModel)
         }
     }

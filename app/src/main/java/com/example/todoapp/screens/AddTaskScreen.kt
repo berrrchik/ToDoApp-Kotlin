@@ -62,18 +62,6 @@ fun AddTaskScreen(navController: NavController, viewModel: TaskViewModel) {
                 onDeadlineChange = { deadline = it },
                 onSave = {
                     if (title.isNotBlank()) {
-//                        без апи
-//                        val newTask = Task(
-//                            id = viewModel.tasks.value.size + 1,
-//                            title = title,
-//                            description = description,
-//                            priority = priority,
-//                            category = category,
-//                            deadline = deadline,
-//                            isCompleted = false
-//                        )
-//                        viewModel.updateTasks(viewModel.tasks.value + newTask)
-//                        с апи
                         val newTask = Task(
                             id = 0,
                             title = title,

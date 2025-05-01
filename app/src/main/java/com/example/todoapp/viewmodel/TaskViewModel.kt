@@ -1,4 +1,3 @@
-// taskviewmodel с апи заглушкой
 package com.example.todoapp.viewmodel
 
 import android.app.Application

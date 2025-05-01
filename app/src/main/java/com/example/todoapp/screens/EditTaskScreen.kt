@@ -67,21 +67,6 @@ fun EditTaskScreen(
                 deadline = deadline,
                 onDeadlineChange = { deadline = it },
                 onSave = {
-//                    без апи
-//                    viewModel.updateTasks(
-//                        tasks.map {
-//                            if (it.id == taskId) {
-//                                it.copy(
-//                                    title = title,
-//                                    description = description,
-//                                    priority = priority,
-//                                    category = category,
-//                                    deadline = deadline
-//                                )
-//                            } else it
-//                        }
-//                    )
-//                    с апи
                     viewModel.updateTask(
                         task.copy(
                             title = title,
