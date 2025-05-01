@@ -1,5 +1,6 @@
 package com.example.todoapp.components
 
+import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -26,26 +27,29 @@ fun TaskEditContent(
     deadline: LocalDateTime?,
     onDeadlineChange: (LocalDateTime?) -> Unit,
     onSave: () -> Unit,
-    buttonText: String
+    buttonText: String,
+    categories: List<TaskCategory> = TaskCategory.DEFAULT_CATEGORIES
 ) {
+    val context = LocalContext.current
+    val dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
+    
     var showPriorityMenu by remember { mutableStateOf(false) }
     var showCategoryMenu by remember { mutableStateOf(false) }
-    val context = LocalContext.current
-    val dateFormatter = remember { DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm") }
-
+    
     Column(
-        modifier = modifier.padding(16.dp)
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        TextField(
+        OutlinedTextField(
             value = title,
             onValueChange = onTitleChange,
             label = { Text("Название задачи") },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp)
+                .padding(bottom = 8.dp)
         )
-
-        TextField(
+        
+        OutlinedTextField(
             value = description,
             onValueChange = onDescriptionChange,
             label = { Text("Описание") },
@@ -93,7 +97,7 @@ fun TaskEditContent(
                 expanded = showCategoryMenu,
                 onDismissRequest = { showCategoryMenu = false }
             ) {
-                TaskCategory.values().forEach { categoryOption ->
+                categories.forEach { categoryOption ->
                     DropdownMenuItem(
                         text = { Text(categoryOption.name) },
                         onClick = {
