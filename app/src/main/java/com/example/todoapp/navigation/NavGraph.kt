@@ -10,4 +10,5 @@ sealed class Screen(val route: String) {
     object EditTask : Screen("edit_task/{taskId}") {
         fun createRoute(taskId: Int) = "edit_task/$taskId"
     }
+    object Categories : Screen("categories")
 } 
