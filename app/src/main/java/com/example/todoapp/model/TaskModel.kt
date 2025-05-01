@@ -9,6 +9,6 @@ data class Task(
     val isCompleted: Boolean = false,
     val isDeleted: Boolean = false,
     val priority: TaskPriority = TaskPriority.СРЕДНИЙ,
-    val category: TaskCategory = TaskCategory.ДРУГОЕ,
+    val category: TaskCategory = TaskCategory.getDefaultCategory(),
     val deadline: LocalDateTime? = null
 )
