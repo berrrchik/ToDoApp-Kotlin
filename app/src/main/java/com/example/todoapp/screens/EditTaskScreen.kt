@@ -13,6 +13,8 @@ import androidx.navigation.NavController
 import androidx.navigation.NavBackStackEntry
 import com.example.todoapp.components.TaskEditContent
 import com.example.todoapp.model.Task
+import com.example.todoapp.model.TaskCategory
+import com.example.todoapp.viewmodel.CategoryViewModel
 import com.example.todoapp.viewmodel.TaskViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -21,10 +23,12 @@ fun EditTaskScreen(
     navController: NavController,
     tasks: List<Task>,
     viewModel: TaskViewModel,
+    categoryViewModel: CategoryViewModel,
     backStackEntry: NavBackStackEntry
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val allCategories by categoryViewModel.categories.collectAsState()
 
     val taskId = backStackEntry.arguments?.getInt("taskId") ?: return
     val task = tasks.find { it.id == taskId } ?: return
@@ -34,6 +38,11 @@ fun EditTaskScreen(
     var priority by remember { mutableStateOf(task.priority) }
     var category by remember { mutableStateOf(task.category) }
     var deadline by remember { mutableStateOf(task.deadline) }
+    
+    // Загружаем категории при первом запуске
+    LaunchedEffect(Unit) {
+        categoryViewModel.loadCategories()
+    }
 
     Scaffold(
         topBar = {
@@ -78,7 +87,8 @@ fun EditTaskScreen(
                     )
                     navController.navigateUp()
                 },
-                buttonText = "Сохранить изменения"
+                buttonText = "Сохранить изменения",
+                categories = allCategories
             )
         }
     }
