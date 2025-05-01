@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Brightness6
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
@@ -42,6 +43,9 @@ fun ActiveTasksScreen(
                         titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     ),
                     actions = {
+                        IconButton(onClick = { navController.navigate(Screen.Categories.route) }) {
+                            Icon(Icons.Default.Category, contentDescription = "Управление категориями")
+                        }
                         IconButton(onClick = { viewModel.toggleTheme() }) {
                             Icon(Icons.Default.Brightness6, contentDescription = "Сменить тему")
                         }
