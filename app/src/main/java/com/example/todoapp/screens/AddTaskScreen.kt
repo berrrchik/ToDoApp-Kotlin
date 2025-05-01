@@ -14,20 +14,31 @@ import com.example.todoapp.components.TaskEditContent
 import com.example.todoapp.model.Task
 import com.example.todoapp.model.TaskCategory
 import com.example.todoapp.model.TaskPriority
+import com.example.todoapp.viewmodel.CategoryViewModel
 import com.example.todoapp.viewmodel.TaskViewModel
 import java.time.LocalDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddTaskScreen(navController: NavController, viewModel: TaskViewModel) {
+fun AddTaskScreen(
+    navController: NavController, 
+    viewModel: TaskViewModel,
+    categoryViewModel: CategoryViewModel
+) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val allCategories by categoryViewModel.categories.collectAsState()
 
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var priority by remember { mutableStateOf(TaskPriority.СРЕДНИЙ) }
-    var category by remember { mutableStateOf(TaskCategory.ДРУГОЕ) }
+    var category by remember { mutableStateOf(TaskCategory.getDefaultCategory()) }
     var deadline by remember { mutableStateOf<LocalDateTime?>(null) }
+
+    // Загружаем категории при первом запуске
+    LaunchedEffect(Unit) {
+        categoryViewModel.loadCategories()
+    }
 
     Scaffold(
         topBar = {
@@ -75,7 +86,8 @@ fun AddTaskScreen(navController: NavController, viewModel: TaskViewModel) {
                         navController.navigateUp()
                     }
                 },
-                buttonText = "Создать задачу"
+                buttonText = "Создать задачу",
+                categories = allCategories
             )
         }
     }
