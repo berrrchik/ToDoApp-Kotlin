@@ -6,6 +6,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.RestoreFromTrash
+import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -67,26 +69,10 @@ fun DeletedTasksScreen(
                             TaskItem(
                                 task = task,
                                 onEditClick = { navController.navigate(Screen.EditTask.createRoute(task.id)) },
-                                onDeleteClick = {
-//                                    без апи
-//                                    viewModel.updateTasks(
-//                                        tasks.map {
-//                                            if (it.id == task.id) it.copy(isDeleted = false) else it
-//                                        }
-//                                    )
-//                                    с апи
-                                    viewModel.updateTask(task.copy(isDeleted = false))
-                                },
-                                onCompleteClick = {
-//                                    без апи
-//                                    viewModel.updateTasks(
-//                                        tasks.map {
-//                                            if (it.id == task.id) it.copy(isCompleted = true) else it
-//                                        }
-//                                    )
-//                                    с апи
-                                    viewModel.updateTask(task.copy(isCompleted = true))
-                                }
+                                onDeleteClick = { viewModel.deleteTask(task.id) },
+                                onCompleteClick = { viewModel.updateTask(task.copy(isDeleted = false)) },
+                                completeIcon = Icons.Default.Undo,
+                                completeIconDescription = "Восстановить"
                             )
                         }
                     }
@@ -101,26 +87,10 @@ fun DeletedTasksScreen(
                         TaskItem(
                             task = task,
                             onEditClick = { navController.navigate(Screen.EditTask.createRoute(task.id)) },
-                            onDeleteClick = {
-//                                без апи
-//                                viewModel.updateTasks(
-//                                    tasks.map {
-//                                        if (it.id == task.id) it.copy(isDeleted = false) else it
-//                                    }
-//                                )
-//                                с апи
-                                viewModel.updateTask(task.copy(isDeleted = false))
-                            },
-                            onCompleteClick = {
-//                                без апи
-//                                viewModel.updateTasks(
-//                                    tasks.map {
-//                                        if (it.id == task.id) it.copy(isCompleted = true) else it
-//                                    }
-//                                )
-//                                с апи
-                                viewModel.updateTask(task.copy(isCompleted = true))
-                            }
+                            onDeleteClick = { viewModel.deleteTask(task.id) },
+                            onCompleteClick = { viewModel.updateTask(task.copy(isDeleted = false)) },
+                            completeIcon = Icons.Default.Undo,
+                            completeIconDescription = "Восстановить"
                         )
                     }
                 }
