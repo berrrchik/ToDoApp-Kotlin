@@ -13,6 +13,7 @@ import java.time.format.DateTimeFormatter
 class TaskStorage(private val context: Context) {
     private val sharedPreferences: SharedPreferences = context.getSharedPreferences("todo_app_tasks", Context.MODE_PRIVATE)
     private val gson = Gson()
+    private val categoryStorage = CategoryStorage(context)
     
     // Ключ для хранения списка задач
     private val TASKS_KEY = "tasks_list"
@@ -25,7 +26,7 @@ class TaskStorage(private val context: Context) {
         val tasksJson = sharedPreferences.getString(TASKS_KEY, "[]")
         val type = object : TypeToken<List<TaskDto>>() {}.type
         val taskDtos = gson.fromJson<List<TaskDto>>(tasksJson, type) ?: emptyList()
-        return taskDtos.map { it.toTask() }
+        return taskDtos.map { it.toTask(categoryStorage) }
     }
     
     // Сохранить список задач
@@ -83,10 +84,12 @@ class TaskStorage(private val context: Context) {
         val isCompleted: Boolean,
         val isDeleted: Boolean,
         val priority: String,
-        val category: String,
+        val categoryId: Int,
         val deadline: String?
     ) {
-        fun toTask(): Task {
+        fun toTask(categoryStorage: CategoryStorage): Task {
+            val category = categoryStorage.getCategoryById(categoryId) ?: TaskCategory.getDefaultCategory()
+            
             return Task(
                 id = id,
                 title = title,
@@ -94,7 +97,7 @@ class TaskStorage(private val context: Context) {
                 isCompleted = isCompleted,
                 isDeleted = isDeleted,
                 priority = TaskPriority.valueOf(priority),
-                category = TaskCategory.valueOf(category),
+                category = category,
                 deadline = deadline?.let { LocalDateTime.parse(it, DateTimeFormatter.ISO_LOCAL_DATE_TIME) }
             )
         }
@@ -108,7 +111,7 @@ class TaskStorage(private val context: Context) {
                     isCompleted = task.isCompleted,
                     isDeleted = task.isDeleted,
                     priority = task.priority.name,
-                    category = task.category.name,
+                    categoryId = task.category.id,
                     deadline = task.deadline?.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
                 )
             }
