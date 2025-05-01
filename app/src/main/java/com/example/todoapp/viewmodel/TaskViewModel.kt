@@ -6,9 +6,8 @@ import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.example.todoapp.api.TaskApiService
-import com.example.todoapp.api.MockTaskApiService
 import com.example.todoapp.model.Task
+import com.example.todoapp.storage.TaskStorage
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,13 +19,8 @@ class TaskViewModel(application: Application, private val savedStateHandle: Save
     private val _isDarkTheme = MutableStateFlow(false)
     val isDarkTheme: StateFlow<Boolean> = _isDarkTheme.asStateFlow()
 
-    fun toggleTheme() {
-        viewModelScope.launch {
-            _isDarkTheme.value = !_isDarkTheme.value
-        }
-    }
-
-    private val api: TaskApiService = MockTaskApiService()
+    // Хранилище задач
+    private val taskStorage = TaskStorage(application)
 
     private val _searchQuery = MutableStateFlow(savedStateHandle.get<String>("searchQuery") ?: "")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -56,13 +50,17 @@ class TaskViewModel(application: Application, private val savedStateHandle: Save
         loadSearchHistory()
     }
     
+    fun toggleTheme() {
+        viewModelScope.launch {
+            _isDarkTheme.value = !_isDarkTheme.value
+        }
+    }
+    
     private fun loadSearchHistory() {
         val sharedPreferences = getApplication<Application>().getSharedPreferences("todo_app_prefs", Context.MODE_PRIVATE)
         val historySet = sharedPreferences.getStringSet(PREF_SEARCH_HISTORY, HashSet()) ?: HashSet()
         
         // Преобразуем Set в список и сортируем по времени добавления (если доступно)
-        // Так как стандартные SharedPreferences не сохраняют порядок, нам нужно использовать
-        // дополнительный механизм для сортировки (можно сохранять timestampы вместе с запросами)
         _searchHistory.value = historySet.toList().take(MAX_HISTORY_ITEMS)
     }
     
@@ -113,7 +111,7 @@ class TaskViewModel(application: Application, private val savedStateHandle: Save
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                _tasks.value = api.getTasks()
+                _tasks.value = taskStorage.getAllTasks()
             } catch (e: Exception) {
                 // Обработка ошибок
             } finally {
@@ -145,7 +143,7 @@ class TaskViewModel(application: Application, private val savedStateHandle: Save
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val newTask = api.createTask(task)
+                val newTask = taskStorage.createTask(task)
                 _tasks.value = _tasks.value + newTask
             } catch (e: Exception) {
                 // Обработка ошибок
@@ -159,7 +157,7 @@ class TaskViewModel(application: Application, private val savedStateHandle: Save
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val updatedTask = api.updateTask(task)
+                val updatedTask = taskStorage.updateTask(task)
                 _tasks.value = _tasks.value.map {
                     if (it.id == task.id) updatedTask else it
                 }
@@ -175,7 +173,7 @@ class TaskViewModel(application: Application, private val savedStateHandle: Save
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                if (api.deleteTask(taskId)) {
+                if (taskStorage.deleteTask(taskId)) {
                     _tasks.value = _tasks.value.filterNot { it.id == taskId }
                 }
             } catch (e: Exception) {
@@ -186,45 +184,3 @@ class TaskViewModel(application: Application, private val savedStateHandle: Save
         }
     }
 }
-
-// taskviewmodel без апи заглушки
-
-//package com.example.todoapp.viewmodel
-//
-//import androidx.lifecycle.ViewModel
-//import androidx.lifecycle.viewModelScope
-//import com.example.todoapp.model.Task
-//import kotlinx.coroutines.flow.MutableStateFlow
-//import kotlinx.coroutines.flow.StateFlow
-//import kotlinx.coroutines.flow.asStateFlow
-//import kotlinx.coroutines.launch
-//
-//class TaskViewModel : ViewModel() {
-//    private val _searchQuery = MutableStateFlow("")
-//    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
-//
-//    private val _tasks = MutableStateFlow<List<Task>>(
-//        List(3) { index ->
-//            Task(
-//                id = index,
-//                title = "Задача ${index + 1}",
-//                description = "Описание задачи ${index + 1}",
-//                isCompleted = false,
-//                deadline = null
-//            )
-//        }
-//    )
-//    val tasks: StateFlow<List<Task>> = _tasks.asStateFlow()
-//
-//    fun updateSearchQuery(query: String) {
-//        viewModelScope.launch {
-//            _searchQuery.value = query
-//        }
-//    }
-//
-//    fun updateTasks(newTasks: List<Task>) {
-//        viewModelScope.launch {
-//            _tasks.value = newTasks
-//        }
-//    }
-//}
