@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -21,6 +22,7 @@ import com.example.todoapp.screens.DeletedTasksScreen
 import com.example.todoapp.screens.EditTaskScreen
 import com.example.todoapp.screens.LoginScreen
 import com.example.todoapp.screens.RegisterScreen
+import com.example.todoapp.utils.TokenManager
 import com.example.todoapp.viewmodel.CategoryViewModel
 import com.example.todoapp.viewmodel.TaskViewModel
 
@@ -33,10 +35,18 @@ fun TodoApp(
     val navController = rememberNavController()
     val searchQuery by taskViewModel.searchQuery.collectAsState()
     val tasks by taskViewModel.tasks.collectAsState()
+    val context = LocalContext.current
+    val tokenManager = TokenManager(context)
+    
+    val startDestination = if (tokenManager.isLoggedIn()) {
+        Screen.ActiveTasks.route
+    } else {
+        Screen.Login.route
+    }
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Login.route,
+        startDestination = startDestination,
         enterTransition = { slideInHorizontally() },
         exitTransition = { slideOutHorizontally() }
     ) {
