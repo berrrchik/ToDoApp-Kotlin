@@ -10,16 +10,19 @@ import androidx.compose.material.icons.filled.Brightness6
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import com.example.todoapp.components.SearchBar
 import com.example.todoapp.components.TaskItem
 import com.example.todoapp.model.Task
 import com.example.todoapp.navigation.Screen
+import com.example.todoapp.utils.TokenManager
 import com.example.todoapp.viewmodel.TaskViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,6 +35,8 @@ fun ActiveTasksScreen(
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val context = LocalContext.current
+    val tokenManager = remember { TokenManager(context) }
 
     Scaffold(
         topBar = {
@@ -54,6 +59,14 @@ fun ActiveTasksScreen(
                         }
                         IconButton(onClick = { navController.navigate(Screen.CompletedTasks.route) }) {
                             Icon(Icons.Default.CheckCircle, contentDescription = "Выполненные задачи")
+                        }
+                        IconButton(onClick = {
+                            tokenManager.clearToken()
+                            navController.navigate(Screen.Login.route) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }) {
+                            Icon(Icons.Default.Logout, contentDescription = "Выйти")
                         }
                     }
                 )
