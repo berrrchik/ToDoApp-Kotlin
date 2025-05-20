@@ -7,15 +7,34 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.todoapp.api.ApiClient
+import com.example.todoapp.model.AuthRequest
 import com.example.todoapp.navigation.Screen
+import com.example.todoapp.utils.TokenManager
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(navController: NavController) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val context = LocalContext.current
+    val tokenManager = remember { TokenManager(context) }
+    val scope = rememberCoroutineScope()
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // Проверка авторизации
+    LaunchedEffect(Unit) {
+        if (tokenManager.isLoggedIn()) {
+            navController.navigate(Screen.ActiveTasks.route) {
+                popUpTo(Screen.Login.route) { inclusive = true }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -24,7 +43,7 @@ fun LoginScreen(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        var email by remember { mutableStateOf("") }
+        var login by remember { mutableStateOf("") }
         var password by remember { mutableStateOf("") }
 
         Text(
@@ -34,9 +53,9 @@ fun LoginScreen(navController: NavController) {
         )
 
         TextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
+            value = login,
+            onValueChange = { login = it },
+            label = { Text("Логин") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp)
@@ -52,13 +71,59 @@ fun LoginScreen(navController: NavController) {
                 .padding(bottom = 16.dp)
         )
 
+        errorMessage?.let {
+            Text(
+                text = it,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+        }
+
         Button(
-            onClick = { navController.navigate(Screen.ActiveTasks.route) },
+            onClick = {
+                scope.launch {
+                    isLoading = true
+                    errorMessage = null
+                    try {
+                        val response = ApiClient.authApi.login(
+                            AuthRequest(login = login, password = password)
+                        )
+                        if (response.isSuccessful) {
+                            val token = response.body()?.token
+                            if (token != null) {
+                                tokenManager.saveToken(token)
+                                navController.navigate(Screen.ActiveTasks.route) {
+                                    popUpTo(Screen.Login.route) { inclusive = true }
+                                }
+                            } else {
+                                errorMessage = "Ошибка авторизации"
+                            }
+                        } else {
+                            errorMessage = when (response.code()) {
+                                400 -> "Неверный логин или пароль"
+                                else -> "Ошибка сервера: ${response.code()}"
+                            }
+                        }
+                    } catch (e: Exception) {
+                        errorMessage = "Ошибка соединения: ${e.message}"
+                    } finally {
+                        isLoading = false
+                    }
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp)
+                .padding(bottom = 16.dp),
+            enabled = !isLoading
         ) {
-            Text("Войти")
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.surface
+                )
+            } else {
+                Text("Войти")
+            }
         }
 
         TextButton(onClick = { navController.navigate(Screen.Register.route) }) {
