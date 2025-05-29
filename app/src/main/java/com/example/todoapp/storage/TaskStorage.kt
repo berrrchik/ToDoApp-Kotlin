@@ -9,6 +9,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 class TaskStorage(private val context: Context) {
     private val sharedPreferences: SharedPreferences = context.getSharedPreferences("todo_app_tasks", Context.MODE_PRIVATE)
@@ -17,9 +18,6 @@ class TaskStorage(private val context: Context) {
     
     // Ключ для хранения списка задач
     private val TASKS_KEY = "tasks_list"
-    
-    // Ключ для хранения последнего ID
-    private val LAST_ID_KEY = "last_task_id"
     
     // Получить все задачи
     fun getAllTasks(): List<Task> {
@@ -36,19 +34,16 @@ class TaskStorage(private val context: Context) {
         sharedPreferences.edit().putString(TASKS_KEY, tasksJson).apply()
     }
     
-    // Получить следующий ID для новой задачи
-    private fun getNextId(): Int {
-        val lastId = sharedPreferences.getInt(LAST_ID_KEY, 0)
-        val nextId = lastId + 1
-        sharedPreferences.edit().putInt(LAST_ID_KEY, nextId).apply()
-        return nextId
+    // Получить новый уникальный ID для задачи
+    private fun generateNewId(): String {
+        return UUID.randomUUID().toString()
     }
     
     // Создать новую задачу
     fun createTask(task: Task): Task {
         val tasks = getAllTasks().toMutableList()
-        val nextId = if (task.id == 0) getNextId() else task.id
-        val newTask = task.copy(id = nextId)
+        val newId = if (task.id.isEmpty()) generateNewId() else task.id
+        val newTask = task.copy(id = newId)
         tasks.add(newTask)
         saveTasks(tasks)
         return newTask
@@ -67,7 +62,7 @@ class TaskStorage(private val context: Context) {
     }
     
     // Удалить задачу по ID
-    fun deleteTask(taskId: Int): Boolean {
+    fun deleteTask(taskId: String): Boolean {
         val tasks = getAllTasks().toMutableList()
         val removed = tasks.removeIf { it.id == taskId }
         if (removed) {
@@ -78,13 +73,13 @@ class TaskStorage(private val context: Context) {
 
     // DTO для сериализации/десериализации задач
     private data class TaskDto(
-        val id: Int,
+        val id: String,
         val title: String,
         val description: String,
         val isCompleted: Boolean,
         val isDeleted: Boolean,
         val priority: String,
-        val categoryId: Int,
+        val categoryId: String,
         val deadline: String?
     ) {
         fun toTask(categoryStorage: CategoryStorage): Task {
