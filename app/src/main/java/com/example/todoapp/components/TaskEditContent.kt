@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -28,7 +29,8 @@ fun TaskEditContent(
     onDeadlineChange: (LocalDateTime?) -> Unit,
     onSave: () -> Unit,
     buttonText: String,
-    categories: List<TaskCategory> = TaskCategory.DEFAULT_CATEGORIES
+    categories: List<TaskCategory> = TaskCategory.DEFAULT_CATEGORIES,
+    isLoading: Boolean = false
 ) {
     val context = LocalContext.current
     val dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
@@ -46,7 +48,8 @@ fun TaskEditContent(
             label = { Text("Название задачи") },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 8.dp)
+                .padding(bottom = 8.dp),
+            enabled = !isLoading
         )
         
         OutlinedTextField(
@@ -56,14 +59,16 @@ fun TaskEditContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(150.dp)
-                .padding(bottom = 16.dp)
+                .padding(bottom = 16.dp),
+            enabled = !isLoading
         )
 
         // Выбор приоритета
         Box {
             OutlinedButton(
                 onClick = { showPriorityMenu = true },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading
             ) {
                 Text("Приоритет: ${priority.name}")
             }
@@ -89,7 +94,8 @@ fun TaskEditContent(
         Box {
             OutlinedButton(
                 onClick = { showCategoryMenu = true },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading
             ) {
                 Text("Категория: ${category.name}")
             }
@@ -118,7 +124,8 @@ fun TaskEditContent(
                     onDeadlineChange(selectedDateTime)
                 }
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isLoading
         ) {
             Text(deadline?.format(dateFormatter) ?: "Установить дедлайн")
         }
@@ -126,7 +133,8 @@ fun TaskEditContent(
         if (deadline != null) {
             TextButton(
                 onClick = { onDeadlineChange(null) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading
             ) {
                 Text("Удалить дедлайн")
             }
@@ -137,9 +145,16 @@ fun TaskEditContent(
         Button(
             onClick = onSave,
             modifier = Modifier.fillMaxWidth(),
-            enabled = title.isNotBlank()
+            enabled = title.isNotBlank() && !isLoading
         ) {
-            Text(buttonText)
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.surface
+                )
+            } else {
+                Text(buttonText)
+            }
         }
     }
 }
