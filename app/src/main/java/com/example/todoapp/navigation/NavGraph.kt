@@ -8,7 +8,7 @@ sealed class Screen(val route: String) {
     object DeletedTasks : Screen("deleted_tasks")
     object AddTask : Screen("add_task")
     object EditTask : Screen("edit_task/{taskId}") {
-        fun createRoute(taskId: Int) = "edit_task/$taskId"
+        fun createRoute(taskId: String) = "edit_task/$taskId"
     }
     object Categories : Screen("categories")
 } 
