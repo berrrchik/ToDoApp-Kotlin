@@ -4,6 +4,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -38,6 +39,14 @@ fun TodoApp(
     val context = LocalContext.current
     val tokenManager = TokenManager(context)
     
+    // При входе в приложение загружаем задачи, если пользователь авторизован
+    LaunchedEffect(Unit) {
+        if (tokenManager.isLoggedIn()) {
+            taskViewModel.loadTasks()
+            categoryViewModel.loadCategories()
+        }
+    }
+    
     val startDestination = if (tokenManager.isLoggedIn()) {
         Screen.ActiveTasks.route
     } else {
@@ -51,13 +60,17 @@ fun TodoApp(
         exitTransition = { slideOutHorizontally() }
     ) {
         composable(Screen.Login.route) {
-            LoginScreen(navController)
+            LoginScreen(navController, taskViewModel, categoryViewModel)
         }
         composable(Screen.Register.route) {
-            RegisterScreen(navController)
+            RegisterScreen(navController, taskViewModel, categoryViewModel)
         }
         composable(Screen.ActiveTasks.route) {
-            ActiveTasksScreen(navController, taskViewModel, searchQuery, tasks)
+            // При переходе на экран активных задач загружаем их
+            LaunchedEffect(Unit) {
+                taskViewModel.loadTasks()
+            }
+            ActiveTasksScreen(navController, taskViewModel, searchQuery, tasks, categoryViewModel)
         }
         composable(Screen.CompletedTasks.route) {
             CompletedTasksScreen(navController, taskViewModel, tasks)
@@ -65,7 +78,7 @@ fun TodoApp(
         composable(Screen.DeletedTasks.route) {
             DeletedTasksScreen(navController, taskViewModel, tasks)
         }
-        composable(Screen.EditTask.route, arguments = listOf(navArgument("taskId") { type = NavType.IntType })) { backStackEntry ->
+        composable(Screen.EditTask.route, arguments = listOf(navArgument("taskId") { type = NavType.StringType })) { backStackEntry ->
             EditTaskScreen(navController, tasks, taskViewModel, categoryViewModel, backStackEntry)
         }
         composable(Screen.AddTask.route) {
