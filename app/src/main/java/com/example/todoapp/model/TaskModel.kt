@@ -3,7 +3,7 @@ package com.example.todoapp.model
 import java.time.LocalDateTime
 
 data class Task(
-    val id: Int,
+    val id: String,
     val title: String,
     val description: String,
     val isCompleted: Boolean = false,
