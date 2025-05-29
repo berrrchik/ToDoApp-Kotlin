@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import com.example.todoapp.model.TaskCategory
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import java.util.UUID
 
 class CategoryStorage(private val context: Context) {
     private val sharedPreferences: SharedPreferences = context.getSharedPreferences("todo_app_categories", Context.MODE_PRIVATE)
@@ -12,9 +13,6 @@ class CategoryStorage(private val context: Context) {
     
     // Ключ для хранения списка категорий
     private val CATEGORIES_KEY = "categories_list"
-    
-    // Ключ для хранения последнего ID
-    private val LAST_ID_KEY = "last_category_id"
     
     // Ключ для хранения скрытых стандартных категорий
     private val HIDDEN_DEFAULT_CATEGORIES_KEY = "hidden_default_categories"
@@ -52,21 +50,13 @@ class CategoryStorage(private val context: Context) {
     fun getUserCategories(): List<TaskCategory> {
         val categoriesJson = sharedPreferences.getString(CATEGORIES_KEY, "[]")
         val type = object : TypeToken<List<TaskCategory>>() {}.type
-        return gson.fromJson(categoriesJson, type) ?: emptyList()
+        return gson.fromJson<List<TaskCategory>>(categoriesJson, type) ?: emptyList()
     }
     
     // Сохранить список пользовательских категорий
     private fun saveCategories(categories: List<TaskCategory>) {
         val categoriesJson = gson.toJson(categories)
         sharedPreferences.edit().putString(CATEGORIES_KEY, categoriesJson).apply()
-    }
-    
-    // Получить следующий ID для новой категории
-    private fun getNextId(): Int {
-        val lastId = sharedPreferences.getInt(LAST_ID_KEY, TaskCategory.DEFAULT_CATEGORIES.size)
-        val nextId = lastId + 1
-        sharedPreferences.edit().putInt(LAST_ID_KEY, nextId).apply()
-        return nextId
     }
     
     // Создать новую категорию
@@ -83,14 +73,15 @@ class CategoryStorage(private val context: Context) {
             throw IllegalArgumentException("Эта категория уже существует как стандартная")
         }
         
-        val newCategory = TaskCategory(id = getNextId(), name = name)
+        // Генерируем новый UUID для категории
+        val newCategory = TaskCategory(id = UUID.randomUUID().toString(), name = name)
         categories.add(newCategory)
         saveCategories(categories)
         return newCategory
     }
     
     // Удалить категорию по ID
-    fun deleteCategory(categoryId: Int): Boolean {
+    fun deleteCategory(categoryId: String): Boolean {
         // Проверяем, что это не стандартная категория
         if (TaskCategory.DEFAULT_CATEGORIES.any { it.id == categoryId }) {
             throw IllegalArgumentException("Нельзя удалить стандартную категорию")
@@ -105,14 +96,12 @@ class CategoryStorage(private val context: Context) {
     }
     
     // Получить ID скрытых стандартных категорий
-    fun getHiddenDefaultCategoryIds(): Set<Int> {
-        return sharedPreferences.getStringSet(HIDDEN_DEFAULT_CATEGORIES_KEY, emptySet())
-            ?.map { it.toInt() }
-            ?.toSet() ?: emptySet()
+    fun getHiddenDefaultCategoryIds(): Set<String> {
+        return sharedPreferences.getStringSet(HIDDEN_DEFAULT_CATEGORIES_KEY, emptySet()) ?: emptySet()
     }
     
     // Скрыть стандартную категорию
-    fun hideDefaultCategory(categoryId: Int): Boolean {
+    fun hideDefaultCategory(categoryId: String): Boolean {
         // Проверяем, что это стандартная категория
         if (!TaskCategory.DEFAULT_CATEGORIES.any { it.id == categoryId }) {
             return false
@@ -130,14 +119,14 @@ class CategoryStorage(private val context: Context) {
         
         // Сохраняем новый список
         sharedPreferences.edit()
-            .putStringSet(HIDDEN_DEFAULT_CATEGORIES_KEY, newHiddenIds.map { it.toString() }.toSet())
+            .putStringSet(HIDDEN_DEFAULT_CATEGORIES_KEY, newHiddenIds)
             .apply()
         
         return true
     }
     
     // Показать скрытую стандартную категорию
-    fun showDefaultCategory(categoryId: Int): Boolean {
+    fun showDefaultCategory(categoryId: String): Boolean {
         // Проверяем, что это стандартная категория
         if (!TaskCategory.DEFAULT_CATEGORIES.any { it.id == categoryId }) {
             return false
@@ -150,7 +139,7 @@ class CategoryStorage(private val context: Context) {
         if (removed) {
             // Сохраняем новый список
             sharedPreferences.edit()
-                .putStringSet(HIDDEN_DEFAULT_CATEGORIES_KEY, hiddenIds.map { it.toString() }.toSet())
+                .putStringSet(HIDDEN_DEFAULT_CATEGORIES_KEY, hiddenIds)
                 .apply()
         }
         
@@ -158,7 +147,7 @@ class CategoryStorage(private val context: Context) {
     }
     
     // Обновить задачи, которые используют удаленную категорию
-    fun updateTasksAfterCategoryDeletion(categoryId: Int, taskStorage: TaskStorage) {
+    fun updateTasksAfterCategoryDeletion(categoryId: String, taskStorage: TaskStorage) {
         val defaultCategory = TaskCategory.getDefaultCategory()
         val tasks = taskStorage.getAllTasks()
         
@@ -170,7 +159,7 @@ class CategoryStorage(private val context: Context) {
     }
     
     // Обновить задачи, которые используют скрытую категорию
-    fun updateTasksAfterCategoryHidden(categoryId: Int, taskStorage: TaskStorage) {
+    fun updateTasksAfterCategoryHidden(categoryId: String, taskStorage: TaskStorage) {
         val defaultCategory = TaskCategory.getDefaultCategory()
         val tasks = taskStorage.getAllTasks()
         
@@ -182,7 +171,7 @@ class CategoryStorage(private val context: Context) {
     }
     
     // Получить категорию по ID
-    fun getCategoryById(categoryId: Int): TaskCategory? {
+    fun getCategoryById(categoryId: String): TaskCategory? {
         // Проверяем скрытые категории
         val hiddenIds = getHiddenDefaultCategoryIds()
         
