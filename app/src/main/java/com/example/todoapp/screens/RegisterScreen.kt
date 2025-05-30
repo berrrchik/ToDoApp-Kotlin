@@ -1,6 +1,7 @@
 package com.example.todoapp.screens
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,10 +16,18 @@ import com.example.todoapp.api.ApiClient
 import com.example.todoapp.model.RegisterRequest
 import com.example.todoapp.navigation.Screen
 import com.example.todoapp.utils.TokenManager
+import com.example.todoapp.viewmodel.CategoryViewModel
+import com.example.todoapp.viewmodel.TaskViewModel
 import kotlinx.coroutines.launch
 
+private const val TAG = "RegisterScreen"
+
 @Composable
-fun RegisterScreen(navController: NavController) {
+fun RegisterScreen(
+    navController: NavController,
+    taskViewModel: TaskViewModel? = null,
+    categoryViewModel: CategoryViewModel? = null
+) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     val context = LocalContext.current
@@ -102,6 +111,7 @@ fun RegisterScreen(navController: NavController) {
                     isLoading = true
                     errorMessage = null
                     try {
+                        Log.d(TAG, "Попытка регистрации пользователя: $login")
                         val response = ApiClient.authApi.register(
                             RegisterRequest(
                                 login = login,
@@ -112,12 +122,28 @@ fun RegisterScreen(navController: NavController) {
                         if (response.isSuccessful) {
                             val token = response.body()?.token
                             if (token != null) {
+                                Log.d(TAG, "Регистрация успешна, сохранение токена")
                                 tokenManager.saveToken(token)
+                                
+                                // Очищаем кэш категорий перед загрузкой
+                                Log.d(TAG, "Очистка кэша категорий перед загрузкой")
+                                categoryViewModel?.let {
+                                    it.clearCategoryCache()
+                                }
+                                
+                                // Загружаем данные перед переходом на главный экран
+                                Log.d(TAG, "Создание стандартных категорий для нового пользователя")
+                                categoryViewModel?.loadCategories()
+                                
+                                Log.d(TAG, "Загрузка задач после регистрации")
+                                taskViewModel?.loadTasks()
+                                
                                 navController.navigate(Screen.ActiveTasks.route) {
                                     popUpTo(Screen.Register.route) { inclusive = true }
                                 }
                             } else {
                                 errorMessage = "Ошибка регистрации"
+                                Log.e(TAG, "Ошибка регистрации: пустой токен")
                             }
                         } else {
                             errorMessage = when (response.code()) {
@@ -125,9 +151,11 @@ fun RegisterScreen(navController: NavController) {
                                 409 -> "Пользователь уже существует"
                                 else -> "Ошибка сервера: ${response.code()}"
                             }
+                            Log.e(TAG, "Ошибка регистрации: ${response.code()}")
                         }
                     } catch (e: Exception) {
                         errorMessage = "Ошибка соединения: ${e.message}"
+                        Log.e(TAG, "Ошибка соединения при регистрации", e)
                     } finally {
                         isLoading = false
                     }
