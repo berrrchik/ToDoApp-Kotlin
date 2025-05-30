@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -63,6 +64,7 @@ fun CategoriesManagementScreen(
     var showAddDialog by remember { mutableStateOf(false) }
     var newCategoryName by remember { mutableStateOf("") }
     var showHiddenCategories by remember { mutableStateOf(false) }
+    var showInfoCard by remember { mutableStateOf(true) }
     
     // Показываем сообщение об ошибке в Snackbar
     LaunchedEffect(errorMessage) {
@@ -108,24 +110,103 @@ fun CategoriesManagementScreen(
                     .fillMaxSize()
                     .padding(padding)
             ) {
+                // Информационная карточка о стандартных категориях
+                if (showInfoCard) {
+                    item {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp)
+                            ) {
+                                Text(
+                                    text = "Информация о категориях",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                                Text(
+                                    text = "• Стандартные категории нельзя удалить\n" +
+                                           "• Названия стандартных категорий нельзя изменить\n" +
+                                           "• Стандартные категории можно скрыть, но должна остаться хотя бы одна видимая\n" +
+                                           "• Скрытые категории не появляются при создании задач",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 8.dp),
+                                    horizontalArrangement = Arrangement.End
+                                ) {
+                                    TextButton(onClick = { showInfoCard = false }) {
+                                        Text("Закрыть")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
                 // Заголовок "Стандартные категории"
                 item {
-                    Text(
-                        text = "Стандартные категории",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(16.dp)
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Стандартные категории",
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        
+                        // Кнопка для обновления статусов
+                        TextButton(onClick = { viewModel.updateDefaultCategoriesStatus() }) {
+                            Text("Обновить статусы")
+                        }
+                    }
                 }
                 
                 // Стандартные категории
-                items(defaultCategories) { category ->
-                    CategoryItem(
-                        category = category,
-                        onDeleteClick = { viewModel.hideDefaultCategory(category.id) },
-                        isDeletable = true,
-                        deleteIcon = Icons.Default.VisibilityOff,
-                        deleteContentDescription = "Скрыть категорию"
-                    )
+                if (defaultCategories.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(100.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = "Стандартные категории отсутствуют",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                )
+                                Button(onClick = { viewModel.createDefaultCategories() }) {
+                                    Text("Создать стандартные категории")
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    items(defaultCategories) { category ->
+                        CategoryItem(
+                            category = category,
+                            onDeleteClick = { viewModel.hideDefaultCategory(category.id) },
+                            isDeletable = true,
+                            deleteIcon = Icons.Default.VisibilityOff,
+                            deleteContentDescription = "Скрыть категорию"
+                        )
+                    }
                 }
                 
                 // Заголовок "Скрытые стандартные категории" и кнопка переключения
@@ -268,10 +349,23 @@ fun CategoryItem(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = category.name,
-                style = MaterialTheme.typography.bodyLarge
-            )
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = category.name,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                
+                // Добавляем индикатор статуса для стандартных категорий
+                if (category.isDefault) {
+                    Text(
+                        text = "Стандартная категория",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+            }
             
             if (onDeleteClick != null && isDeletable) {
                 IconButton(onClick = onDeleteClick) {
