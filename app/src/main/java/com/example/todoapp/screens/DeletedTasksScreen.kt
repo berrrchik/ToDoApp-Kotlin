@@ -18,6 +18,7 @@ import com.example.todoapp.components.TaskItem
 import com.example.todoapp.model.Task
 import com.example.todoapp.navigation.Screen
 import com.example.todoapp.viewmodel.TaskViewModel
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,8 +29,34 @@ fun DeletedTasksScreen(
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-
-    val deletedTasks = tasks.filter { it.isDeleted }
+    val errorMessage by viewModel.errorMessage.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    
+    // Локальное состояние для хранения удаленных задач
+    var deletedTasks by remember { mutableStateOf(tasks.filter { it.isDeleted }) }
+    
+    // Обновляем локальное состояние, когда меняется список задач
+    LaunchedEffect(tasks) {
+        deletedTasks = tasks.filter { it.isDeleted }
+    }
+    
+    // Отслеживаем события удаления задач
+    LaunchedEffect(Unit) {
+        viewModel.taskDeletedEvent.collectLatest { deletedTaskId ->
+            // Обновляем локальное состояние, удаляя задачу
+            deletedTasks = deletedTasks.filterNot { it.id == deletedTaskId }
+        }
+    }
+    
+    // SnackBar для отображения ошибок
+    val snackbarHostState = remember { SnackbarHostState() }
+    
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearError()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -41,9 +68,19 @@ fun DeletedTasksScreen(
                     }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { padding ->
-        if (deletedTasks.isEmpty()) {
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else if (deletedTasks.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -69,7 +106,7 @@ fun DeletedTasksScreen(
                             TaskItem(
                                 task = task,
                                 onEditClick = { navController.navigate(Screen.EditTask.createRoute(task.id)) },
-                                onDeleteClick = { viewModel.deleteTask(task.id) },
+                                onDeleteClick = { viewModel.permanentlyDeleteTask(task.id) },
                                 onCompleteClick = { viewModel.updateTask(task.copy(isDeleted = false)) },
                                 completeIcon = Icons.Default.Undo,
                                 completeIconDescription = "Восстановить"
@@ -87,7 +124,7 @@ fun DeletedTasksScreen(
                         TaskItem(
                             task = task,
                             onEditClick = { navController.navigate(Screen.EditTask.createRoute(task.id)) },
-                            onDeleteClick = { viewModel.deleteTask(task.id) },
+                            onDeleteClick = { viewModel.permanentlyDeleteTask(task.id) },
                             onCompleteClick = { viewModel.updateTask(task.copy(isDeleted = false)) },
                             completeIcon = Icons.Default.Undo,
                             completeIconDescription = "Восстановить"
