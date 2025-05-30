@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.todoapp.components.SearchBar
 import com.example.todoapp.components.TaskItem
@@ -24,6 +25,7 @@ import com.example.todoapp.model.Task
 import com.example.todoapp.navigation.Screen
 import com.example.todoapp.utils.TokenManager
 import com.example.todoapp.viewmodel.TaskViewModel
+import com.example.todoapp.viewmodel.CategoryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,12 +33,26 @@ fun ActiveTasksScreen(
     navController: NavController,
     viewModel: TaskViewModel,
     searchQuery: String,
-    tasks: List<Task>
+    tasks: List<Task>,
+    categoryViewModel: CategoryViewModel? = null
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     val context = LocalContext.current
     val tokenManager = remember { TokenManager(context) }
+    val errorMessage by viewModel.errorMessage.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    
+    // Snackbar для отображения ошибок
+    val snackbarHostState = remember { SnackbarHostState() }
+    
+    // Показываем сообщение об ошибке в Snackbar
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearError()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -62,6 +78,8 @@ fun ActiveTasksScreen(
                         }
                         IconButton(onClick = {
                             tokenManager.clearToken()
+                            // Очищаем кэш категорий при выходе
+                            (categoryViewModel as? CategoryViewModel)?.clearCategoryCache() 
                             navController.navigate(Screen.Login.route) {
                                 popUpTo(0) { inclusive = true }
                             }
@@ -98,20 +116,49 @@ fun ActiveTasksScreen(
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Добавить задачу")
             }
-        }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { padding ->
-        if (tasks.isEmpty()) {
+        if (isLoading) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "Нет активных задач",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                )
+                CircularProgressIndicator()
+            }
+        } else if (tasks.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Нет активных задач",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = { viewModel.loadTasks() }) {
+                        Text("Обновить")
+                    }
+                    
+                    // Кнопка для отладки с информацией о задачах
+                    OutlinedButton(
+                        onClick = {
+                            viewModel.loadTasks()
+                        },
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) {
+                        Text("Диагностика API")
+                    }
+                }
             }
         } else {
             val filteredTasks = tasks.filterNot { it.isCompleted || it.isDeleted }
