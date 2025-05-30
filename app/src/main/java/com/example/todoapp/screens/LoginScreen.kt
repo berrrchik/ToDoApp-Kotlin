@@ -1,6 +1,7 @@
 package com.example.todoapp.screens
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,10 +16,18 @@ import com.example.todoapp.api.ApiClient
 import com.example.todoapp.model.AuthRequest
 import com.example.todoapp.navigation.Screen
 import com.example.todoapp.utils.TokenManager
+import com.example.todoapp.viewmodel.CategoryViewModel
+import com.example.todoapp.viewmodel.TaskViewModel
 import kotlinx.coroutines.launch
 
+private const val TAG = "LoginScreen"
+
 @Composable
-fun LoginScreen(navController: NavController) {
+fun LoginScreen(
+    navController: NavController,
+    taskViewModel: TaskViewModel? = null,
+    categoryViewModel: CategoryViewModel? = null
+) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     val context = LocalContext.current
@@ -30,6 +39,10 @@ fun LoginScreen(navController: NavController) {
     // Проверка авторизации
     LaunchedEffect(Unit) {
         if (tokenManager.isLoggedIn()) {
+            Log.d(TAG, "Пользователь уже авторизован, загрузка данных")
+            categoryViewModel?.loadCategories()
+            taskViewModel?.loadTasks()
+            
             navController.navigate(Screen.ActiveTasks.route) {
                 popUpTo(Screen.Login.route) { inclusive = true }
             }
@@ -85,27 +98,47 @@ fun LoginScreen(navController: NavController) {
                     isLoading = true
                     errorMessage = null
                     try {
+                        Log.d(TAG, "Попытка входа для пользователя: $login")
                         val response = ApiClient.authApi.login(
                             AuthRequest(login = login, password = password)
                         )
                         if (response.isSuccessful) {
                             val token = response.body()?.token
                             if (token != null) {
+                                Log.d(TAG, "Вход успешен, сохранение токена")
                                 tokenManager.saveToken(token)
+                                
+                                // Сначала очищаем кэш категорий
+                                Log.d(TAG, "Очистка кэша категорий перед загрузкой")
+                                categoryViewModel?.let {
+                                    // Используем репозиторий напрямую для очистки кэша
+                                    it.clearCategoryCache()
+                                }
+                                
+                                // Загружаем данные перед переходом на главный экран
+                                Log.d(TAG, "Загрузка категорий после входа")
+                                categoryViewModel?.loadCategories()
+                                
+                                Log.d(TAG, "Загрузка задач после входа")
+                                taskViewModel?.loadTasks()
+                                
                                 navController.navigate(Screen.ActiveTasks.route) {
                                     popUpTo(Screen.Login.route) { inclusive = true }
                                 }
                             } else {
                                 errorMessage = "Ошибка авторизации"
+                                Log.e(TAG, "Ошибка авторизации: пустой токен")
                             }
                         } else {
                             errorMessage = when (response.code()) {
                                 400 -> "Неверный логин или пароль"
                                 else -> "Ошибка сервера: ${response.code()}"
                             }
+                            Log.e(TAG, "Ошибка авторизации: ${response.code()}")
                         }
                     } catch (e: Exception) {
                         errorMessage = "Ошибка соединения: ${e.message}"
+                        Log.e(TAG, "Ошибка соединения при входе", e)
                     } finally {
                         isLoading = false
                     }
